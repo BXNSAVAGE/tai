@@ -26,14 +26,14 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      font-size: 3rem;
+      font-size: 4rem;
       color: #00ffe7;
       z-index: 3;
       pointer-events: none;
     }
     .coin-label {
       position: absolute;
-      font-size: 0.9rem;
+      font-size: 1.2rem;
       white-space: nowrap;
       cursor: pointer;
       transition: transform 0.2s ease, filter 0.2s ease;
@@ -52,98 +52,116 @@
   <canvas id="particles"></canvas>
   <div class="center-text">TradezAI</div>
   <script>
-    const canvas = document.getElementById("particles");
-    const ctx = canvas.getContext("2d");
-    let particles = [], coins = [];
-    let w, h;
-    let hoveredCoin = false;
+    (() => {
+      const canvas = document.getElementById("particles");
+      const ctx = canvas.getContext("2d");
+      let particles = [], coins = [];
+      let w, h;
+      let mouseX = -1, mouseY = -1;
+      const coinGroups = {
+        low: ["WAMP", "PEPE", "Devi", "UNICORN", "SWH", "YUPPIE", "GOCHI", "HAYDEN", "WHISKERS", "NUT"],
+        moderate: ["VETH", "WATCHCOIN", "ITRUMP", "SolaDog", "BOH", "Z12", "DFF", "HIGHER", "GATI", "GREEBLER", "GUIDE", "BATON"],
+        high: ["KYC", "JPM", "TRUMPBARAK", "Methaphone", "TVERSE", "Pornhub", "IVANKA TRUMP", "DJDANIEL", "MADFIA", "MOON", "APING", "AI", "HOUSENIGGA"]
+      };
 
-    const coinGroups = {
-      low: ["WAMP", "PEPE", "Devi", "UNICORN", "SWH", "YUPPIE"],
-      moderate: ["VETH", "WATCHCOIN", "ITRUMP", "SolaDog", "BOH", "Z12"],
-      high: ["KYC", "JPM", "TRUMPBARAK", "Methaphone", "TVERSE", "Pornhub"]
-    };
+      const solscanTxPage = () => "https://solscan.io/txs";
 
-    const solscanTxUrl = () => {
-      const randomHash = [...Array(88)].map(() => Math.floor(Math.random() * 16).toString(16)).join('');
-      return `https://solscan.io/tx/${randomHash}`;
-    };
+      function resize() {
+        w = canvas.width = window.innerWidth;
+        h = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener("resize", resize);
 
-    function resize() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-    }
-    resize();
-    window.addEventListener("resize", resize);
+      canvas.addEventListener("mousemove", e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+      });
 
-    function createCoinParticles() {
-      Object.entries(coinGroups).forEach(([risk, group]) => {
-        group.forEach(name => {
-          const angle = Math.random() * Math.PI * 2;
-          const radius = 120 + Math.random() * 200;
-          const div = document.createElement("div");
-          div.className = `coin-label ${risk}`;
-          div.textContent = name;
+      canvas.addEventListener("mouseleave", () => {
+        mouseX = -1;
+        mouseY = -1;
+      });
 
-          div.onclick = () => window.open(solscanTxUrl(), '_blank');
-          div.onmouseenter = () => hoveredCoin = true;
-          div.onmouseleave = () => hoveredCoin = false;
+      function createCoinParticles() {
+        Object.entries(coinGroups).forEach(([risk, group]) => {
+          group.forEach(name => {
+            const angle = Math.random() * Math.PI * 2;
+            const radius = 150 + Math.random() * 250;
+            const div = document.createElement("div");
+            div.className = `coin-label ${risk}`;
+            div.textContent = name;
+            div.onclick = () => window.open(solscanTxPage(), '_blank');
 
-          document.body.appendChild(div);
-          coins.push({
-            el: div,
-            angle,
-            radius,
-            speed: 0.002 + Math.random() * 0.004
+            document.body.appendChild(div);
+            coins.push({
+              el: div,
+              angle,
+              radius,
+              speed: 0.0015 + Math.random() * 0.003
+            });
           });
         });
-      });
-    }
-
-    function createParticles() {
-      for (let i = 0; i < 800; i++) {
-        const angle = Math.random() * Math.PI * 2;
-        const radius = 100 + Math.random() * 250;
-        particles.push({
-          x: 0, y: 0,
-          r: 1 + Math.random() * 2,
-          angle,
-          speed: 0.002 + Math.random() * 0.004,
-          radius,
-          baseRadius: radius
-        });
       }
-    }
 
-    function animate() {
-      ctx.clearRect(0, 0, w, h);
-      ctx.fillStyle = "rgba(0, 150, 255, 0.7)";
-      particles.forEach(p => {
-        p.angle += p.speed;
-        if (hoveredCoin) {
-          p.radius += (p.baseRadius + 50 - p.radius) * 0.05; // disperse
-        } else {
-          p.radius += (p.baseRadius - p.radius) * 0.05; // contract
+      function createParticles() {
+        for (let i = 0; i < 1000; i++) {
+          const angle = Math.random() * Math.PI * 2;
+          const radius = 150 + Math.random() * 300;
+          particles.push({
+            x: 0, y: 0,
+            r: 1 + Math.random() * 2,
+            angle,
+            speed: 0.0015 + Math.random() * 0.003,
+            radius,
+            baseRadius: radius
+          });
         }
-        p.x = w / 2 + Math.cos(p.angle) * p.radius;
-        p.y = h / 2 + Math.sin(p.angle) * p.radius;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fill();
-      });
-      coins.forEach(c => {
-        c.angle += c.speed;
-        const x = w / 2 + Math.cos(c.angle) * c.radius;
-        const y = h / 2 + Math.sin(c.angle) * c.radius;
-        c.el.style.left = `${x}px`;
-        c.el.style.top = `${y}px`;
-      });
-      requestAnimationFrame(animate);
-    }
+      }
 
-    createParticles();
-    createCoinParticles();
-    animate();
+      function animate() {
+        ctx.clearRect(0, 0, w, h);
+        ctx.fillStyle = "rgba(0, 150, 255, 0.7)";
+        particles.forEach(p => {
+          p.angle += p.speed;
+          let dispersed = false;
+          if (mouseX !== -1 && mouseY !== -1) {
+            const px = w / 2 + Math.cos(p.angle) * p.radius;
+            const py = h / 2 + Math.sin(p.angle) * p.radius;
+            const dx = px - mouseX;
+            const dy = py - mouseY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 100) {
+              p.radius += (p.baseRadius + 50 - p.radius) * 0.1;
+              dispersed = true;
+            }
+          }
+          if (!dispersed) {
+            p.radius += (p.baseRadius - p.radius) * 0.05;
+          }
+
+          p.x = w / 2 + Math.cos(p.angle) * p.radius;
+          p.y = h / 2 + Math.sin(p.angle) * p.radius;
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        coins.forEach(c => {
+          c.angle += c.speed;
+          const x = w / 2 + Math.cos(c.angle) * c.radius;
+          const y = h / 2 + Math.sin(c.angle) * c.radius;
+          c.el.style.left = `${x}px`;
+          c.el.style.top = `${y}px`;
+        });
+
+        requestAnimationFrame(animate);
+      }
+
+      createParticles();
+      createCoinParticles();
+      animate();
+    })();
   </script>
 </body>
 </html>
